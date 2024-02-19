@@ -175,3 +175,47 @@ flight_df_with_weather_delay = merge_carrier_data(flight_df_with_weather_delay,c
 # OP_UNIQUE_CARRIER and code can be dropped
 flight_df_with_weather_delay = flight_df_with_weather_delay.drop(['OP_UNIQUE_CARRIER','Code'],axis=1)
 
+
+# since the number of records are huge and api limit is 10000 grouping by unique records on the basis of date,latitude,longitude,state
+
+temp_df = flight_df_with_weather_delay[['FL_DATE','origin_state','origin_latitude','origin_longitude']].drop_duplicates(subset=['FL_DATE','origin_state','origin_latitude','origin_longitude'])
+temp_df=temp_df.rename(columns={'origin_state':'state', 'origin_latitude': 'latitude','origin_longitude' : 'longitude'})
+temp_df1 = flight_df_with_weather_delay[['FL_DATE','destination_state','destination_latitude','destination_longitude']].drop_duplicates(subset=['FL_DATE','destination_state','destination_latitude','destination_longitude'])
+temp_df1=temp_df1.rename(columns={'destination_state':'state', 'destination_latitude': 'latitude','destination_longitude' : 'longitude'})
+result_df = pd.concat([temp_df, temp_df1]).drop_duplicates(subset=['FL_DATE','state', 'latitude', 'longitude'])
+
+result_df.to_csv("API_Input.csv",index=False)
+
+# function for joining latitude longitude details to the main dataset
+def merge_temperature_data(flight_df, temperature_df,origin_or_destination):
+    if (origin_or_destination == "origin"):
+        merged_df = pd.merge(flight_df, temperature_df, left_on=['FL_DATE','origin_state'], right_on=['FL_DATE','state'], how='left').rename(columns={'temperature' : origin_or_destination +'_temperature'})
+    else:
+        merged_df = pd.merge(flight_df, temperature_df, left_on=['FL_DATE','destination_state'], right_on=['FL_DATE','state'], how='left').rename(columns={'temperature' : origin_or_destination +'_temperature'})
+    return merged_df.drop(['state','latitude','longitude'], axis=1, errors='ignore')
+
+# reading API data
+temperature_df = pd.read_csv("API_Output.csv")
+
+# converting into proper data types for merging
+temperature_df['FL_DATE'] = pd.to_datetime(temperature_df['FL_DATE'])
+temperature_df['FL_DATE'] = temperature_df['FL_DATE'].dt.date
+
+# merging temperature to the main dataframe
+flight_df_with_weather_delay = merge_temperature_data(flight_df_with_weather_delay,temperature_df,'origin')
+flight_df_with_weather_delay = merge_temperature_data(flight_df_with_weather_delay,temperature_df,'destination')
+
+print(flight_df_with_weather_delay.head(),"\n")
+
+# changing the airport ids to categorical
+flight_df_with_weather_delay['ORIGIN_AIRPORT_ID'] = flight_df_with_weather_delay['ORIGIN_AIRPORT_ID'].astype('category')
+flight_df_with_weather_delay['DEST_AIRPORT_ID'] = flight_df_with_weather_delay['DEST_AIRPORT_ID'].astype('category')
+
+print("---------------------------------------------------------------------------\n")
+
+
+
+flight_df_with_weather_delay.to_csv("Clean_Data.csv",index=False)
+
+
+
