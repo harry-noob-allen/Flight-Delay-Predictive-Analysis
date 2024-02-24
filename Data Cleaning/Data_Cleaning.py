@@ -2,7 +2,6 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import requests 
 
 # reading the merged dataset
 flight_df_with_weather_delay = pd.read_csv("Merged_Dataset.csv")
@@ -147,8 +146,6 @@ flight_df_with_weather_delay.loc[:, ['origin_latitude', 'destination_latitude']]
 flight_df_with_weather_delay.loc[:, ['origin_longitude', 'destination_longitude']] = flight_df_with_weather_delay[['origin_longitude', 'destination_longitude']].fillna(64.8963)
 flight_df_with_weather_delay.loc[:, ['origin_state', 'destination_state']] = flight_df_with_weather_delay[['origin_state', 'destination_state']].fillna("U.S. Virgin Islands")
 
-print("---------------------------------------------------------------------------\n")
-
 # since the state name of destination and origin is available the state abr can be removed
 flight_df_with_weather_delay = flight_df_with_weather_delay.drop(['DEST_STATE_ABR','ORIGIN_STATE_ABR'],axis=1)
 
@@ -162,7 +159,7 @@ flight_df_with_weather_delay['OP_CARRIER_AIRLINE_ID'].value_counts()
 flight_df_with_weather_delay = flight_df_with_weather_delay.drop(['OP_CARRIER_AIRLINE_ID'],axis=1)
 
 # instead of carrier code its better to have carrier name
-carrier_df = pd.read_csv("Carriers.csv")
+carrier_df = pd.read_csv("carriers.csv")
 
 # function for joining latitude longitude details to the main dataset
 def merge_carrier_data(flight_df, carrier_df):
@@ -213,9 +210,36 @@ flight_df_with_weather_delay['DEST_AIRPORT_ID'] = flight_df_with_weather_delay['
 
 print("---------------------------------------------------------------------------\n")
 
+# filtering columns in which delay validation fails
+rows_to_drop = flight_df_with_weather_delay[
+    (flight_df_with_weather_delay['WEATHER_DELAY'] > flight_df_with_weather_delay['DEP_DELAY']) &
+    (flight_df_with_weather_delay['ARR_DELAY'] != (flight_df_with_weather_delay['CARRIER_DELAY'] + flight_df_with_weather_delay['WEATHER_DELAY'] + flight_df_with_weather_delay['NAS_DELAY'] + flight_df_with_weather_delay['SECURITY_DELAY']))
+].index
 
+# dropping columns columns in which delay validation fails
+flight_df_with_weather_delay.drop(index=rows_to_drop, inplace=True)
 
-flight_df_with_weather_delay.to_csv("Clean_Data.csv",index=False)
+# replacing negative departure values as 0 as it doesnt mean any delay
+flight_df_with_weather_delay['DEP_DELAY'] = flight_df_with_weather_delay['DEP_DELAY'].apply(lambda x: max(0, x))
 
+# function for computing origin and destination weather delay
+def origin_delay(row):
+    if row['DEP_DELAY'] < row['ARR_DELAY']:
+        if row['WEATHER_DELAY'] <= row['DEP_DELAY']:
+            return row['WEATHER_DELAY'], 0
+        else:
+            return row['DEP_DELAY'], row['WEATHER_DELAY'] - row['DEP_DELAY']
+    else:
+        return row['WEATHER_DELAY'], 0
+
+flight_df_with_weather_delay[['origin_weather_delay', 'destination_weather_delay']] = flight_df_with_weather_delay.apply(lambda row: pd.Series(origin_delay(row), index=['origin_weather_delay', 'destination_weather_delay']), axis=1)
+
+# dropping weather_delay column
+flight_df_with_weather_delay = flight_df_with_weather_delay.drop(['WEATHER_DELAY'],axis=1)
+
+print(flight_df_with_weather_delay.head(),"\n")
+
+print("---------------------------------------------------------------------------\n")
+flight_df_with_weather_delay.to_csv("Cleaned_Data.csv",index=False)
 
 
