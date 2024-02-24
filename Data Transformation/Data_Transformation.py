@@ -1,6 +1,6 @@
 import pandas as pd
 
-flight_df_with_weather_delay = pd.read_csv("Clean_Data.csv")
+flight_df_with_weather_delay = pd.read_csv("Cleaned_Data.csv")
 
 # coverting temperature from celcius to farenheit
 flight_df_with_weather_delay['origin_temperature'] = (flight_df_with_weather_delay['origin_temperature']*1.8) + 32
@@ -34,7 +34,8 @@ print("-------------------------------------------------------------------------
 flight_df_with_weather_delay['DEP_DELAY'] = flight_df_with_weather_delay['DEP_DELAY']/60
 flight_df_with_weather_delay['ARR_DELAY'] = flight_df_with_weather_delay['ARR_DELAY']/60
 flight_df_with_weather_delay['CARRIER_DELAY'] = flight_df_with_weather_delay['CARRIER_DELAY']/60
-flight_df_with_weather_delay['WEATHER_DELAY'] = flight_df_with_weather_delay['WEATHER_DELAY']/60
+flight_df_with_weather_delay['origin_weather_delay'] = flight_df_with_weather_delay['origin_weather_delay']/60
+flight_df_with_weather_delay['destination_weather_delay'] = flight_df_with_weather_delay['destination_weather_delay']/60
 flight_df_with_weather_delay['NAS_DELAY'] = flight_df_with_weather_delay['NAS_DELAY']/60
 flight_df_with_weather_delay['SECURITY_DELAY'] = flight_df_with_weather_delay['SECURITY_DELAY']/60
 
@@ -47,7 +48,6 @@ flight_df_with_weather_delay.rename(columns=
                                             "DEP_DELAY":"departure_delay",
                                             "ARR_DELAY":"arrival_delay",
                                             "CARRIER_DELAY":"carrier_delay",
-                                            "WEATHER_DELAY":"weather_delay",
                                             "NAS_DELAY":"nas_delay",
                                             "SECURITY_DELAY":"security_delay",
                                             "Description":"description"},inplace=True)
