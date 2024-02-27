@@ -1,15 +1,9 @@
 # importing necessary libraries
 library(viridis)
 library(arules)
-library(TSP)
 library(data.table)
-library(tcltk)
 library(dplyr)
-library(devtools)
-library(purrr)
-library(tidyr)
 library(arulesViz)
-library(RColorBrewer)
 library(htmlwidgets)
 
 # reading the pre-processed data as transactions
