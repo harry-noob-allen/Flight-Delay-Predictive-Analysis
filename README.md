@@ -23,8 +23,6 @@ The motivation behind this project stems from the frequent air travel in today's
 - **Association Rule Mining (ARM)**: To uncover patterns and relationships within the data.
 - **Jupyter Notebook**: For interactive development and documentation.
 - **Git**: For version control and collaboration.
-- **Azure Machine Learning**: For deploying and managing machine learning models in the cloud (if applicable).
-- **Power BI/Tableau**: For creating interactive dashboards and visualizations to present the findings (if applicable).
 
 ### Previous Work
 - **Prediction of Flight Departure Delays Caused by Weather Conditions Adopting Data-Driven Approaches**: This study compares machine learning models like Support Vector Regression (SVR) and Recurrent Neural Networks (RNNs) for delay prediction.
